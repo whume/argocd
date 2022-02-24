@@ -15,7 +15,7 @@ spec:
         libs:
           - vendored
       recurse: true
-    path: kube-prometheus
+    path: kube-prometheus/
     repoURL: https://github.com/whume/argocd.git
     targetRevision: HEAD
   syncPolicy:
