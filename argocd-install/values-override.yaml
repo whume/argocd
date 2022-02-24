@@ -48,7 +48,7 @@ server:
       kind: '*'
     orphanedResources:
       warn: false
-   - name: test
+  - name: test
     namespace: argocd
     additionalLabels: {}
     additionalAnnotations: {}
