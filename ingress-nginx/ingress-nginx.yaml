@@ -406,10 +406,6 @@ spec:
       - effect: NoSchedule
         key: node-role.kubernetes.io/master
         operator: Equal
-      volumes:
-      - name: webhook-cert
-        secret:
-          secretName: ingress-nginx-admission
 ---
 apiVersion: networking.k8s.io/v1
 kind: IngressClass
