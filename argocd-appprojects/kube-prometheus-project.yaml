@@ -3,6 +3,7 @@ kind: AppProject
 metadata:
   name: monitoring
   namespace: argocd
+  generation: 1
 spec:
   clusterResourceWhitelist:
     - group: "*"
