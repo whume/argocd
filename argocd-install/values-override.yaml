@@ -30,6 +30,7 @@ server:
         repoURL: https://github.com/whume/argocd.git
         targetRevision: HEAD
       syncPolicy:
+        automated: {}
         syncOptions:
         - CreateNamespace=true
     - name: argocd-apps
