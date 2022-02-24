@@ -392,10 +392,6 @@ spec:
             drop:
             - ALL
           runAsUser: 101
-        volumeMounts:
-        - mountPath: /usr/local/certificates/
-          name: webhook-cert
-          readOnly: true
       dnsPolicy: ClusterFirst
       nodeSelector:
         ingress-ready: "true"
