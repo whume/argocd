@@ -1,0 +1,23 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kube-prometheus
+  namespace: argocd
+spec:
+  destination:
+    namespace: monitoring
+    server: https://kubernetes.default.svc
+  project: monitoring
+  source:
+    directory:
+      jsonnet:
+        libs:
+          - vendored
+      recurse: true
+    path: kube-prometheus
+    repoURL: https://github.com/whume/argocd.git
+    targetRevision: HEAD
+  syncPolicy:
+    automated: {}
+---
