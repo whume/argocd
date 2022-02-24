@@ -21,7 +21,7 @@ kind create cluster --config cluster-configs/kind-config.yaml
 
 # Install Argocd 
 cd argocd-install/
-helm install argocd ./argo-cd     --namespace=argocd     --create-namespace     -f values-override.yaml
+helm install argocd ./argo-cd --namespace=argocd --create-namespace -f values-override.yaml
 
 ```
 Access ArgoCD on localhost port 80
@@ -30,7 +30,7 @@ Access ArgoCD on localhost port 80
 
 Get ArgoCD admin password
 ```bash
-kubectl -n argocd get secrets argocd-initial-admin-secret     -o jsonpath='{.data.password}' | base64 -d
+kubectl -n argocd get secrets argocd-initial-admin-secret -o jsonpath='{.data.password}' | base64 -d
 ```
 
 ## Apps Installed
