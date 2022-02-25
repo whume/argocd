@@ -35,13 +35,13 @@ local defaults = {
       prometheusSelector: 'job="prometheus-' + defaults.name + '",namespace="' + defaults.namespace + '"',
       prometheusName: '{{$labels.namespace}}/{{$labels.pod}}',
       // TODO: remove `thanosSelector` after 0.10.0 release.
-      thanosSelector: '',
+      thanosSelector: 'job="thanos-sidecar"',
       thanos: {
         targetGroups: {
           namespace: defaults.namespace,
         },
         sidecar: {
-          selector: 'job="thanos-sidecar"',
+          selector: defaults.mixin._config.thanosSelector,
           thanosPrometheusCommonDimensions: 'namespace, pod',
         },
       },
@@ -98,6 +98,7 @@ function(params) {
     apiVersion: 'v1',
     kind: 'ServiceAccount',
     metadata: p._metadata,
+    automountServiceAccountToken: false,
   },
 
   service: {
@@ -146,7 +147,9 @@ function(params) {
   clusterRole: {
     apiVersion: 'rbac.authorization.k8s.io/v1',
     kind: 'ClusterRole',
-    metadata: p._metadata,
+    metadata: p._metadata {
+      namespace:: null,
+    },
     rules: [
       {
         apiGroups: [''],
@@ -194,7 +197,9 @@ function(params) {
   clusterRoleBinding: {
     apiVersion: 'rbac.authorization.k8s.io/v1',
     kind: 'ClusterRoleBinding',
-    metadata: p._metadata,
+    metadata: p._metadata {
+      namespace:: null,
+    },
     roleRef: {
       apiGroup: 'rbac.authorization.k8s.io',
       kind: 'ClusterRole',

@@ -129,6 +129,7 @@ function(params)
       spec+: {
         template+: {
           spec+: {
+            automountServiceAccountToken: true,
             containers+: [kubeRbacProxy],
           },
         },

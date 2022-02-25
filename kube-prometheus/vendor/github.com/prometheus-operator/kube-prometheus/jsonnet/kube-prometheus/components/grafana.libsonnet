@@ -24,6 +24,12 @@ local defaults = {
     if !std.setMember(labelName, ['app.kubernetes.io/version'])
   },
   prometheusName:: error 'must provide prometheus name',
+  mixin: {
+    ruleLabels: {},
+    _config: {
+      runbookURLPattern: 'https://runbooks.prometheus-operator.dev/runbooks/grafana/%s',
+    },
+  },
 };
 
 function(params)
@@ -40,6 +46,27 @@ function(params)
       labels: g._config.commonLabels,
     },
 
+    mixin::
+      (import 'github.com/grafana/grafana/grafana-mixin/mixin.libsonnet') +
+      (import 'github.com/kubernetes-monitoring/kubernetes-mixin/lib/add-runbook-links.libsonnet') + {
+        _config+:: g._config.mixin._config,
+      },
+
+    prometheusRule: {
+      apiVersion: 'monitoring.coreos.com/v1',
+      kind: 'PrometheusRule',
+      metadata: {
+        labels: g._config.commonLabels + g._config.mixin.ruleLabels,
+        name: g._config.name + '-rules',
+        namespace: g._config.namespace,
+      },
+      spec: {
+        local r = if std.objectHasAll(g.mixin, 'prometheusRules') then g.mixin.prometheusRules.groups else [],
+        local a = if std.objectHasAll(g.mixin, 'prometheusAlerts') then g.mixin.prometheusAlerts.groups else [],
+        groups: a + r,
+      },
+    },
+
     serviceMonitor: {
       apiVersion: 'monitoring.coreos.com/v1',
       kind: 'ServiceMonitor',
@@ -54,6 +81,35 @@ function(params)
           port: 'http',
           interval: '15s',
         }],
+      },
+    },
+
+    // FIXME(ArthurSens): The securityContext overrides can be removed after some PRs get merged
+    // 'allowPrivilegeEscalation: false' can be deleted when https://github.com/brancz/kubernetes-grafana/pull/128 gets merged.
+    // 'readOnlyRootFilesystem: true' and extra volumeMounts can be deleted when https://github.com/brancz/kubernetes-grafana/pull/129 gets merged.
+    // FIXME(paulfantom): `automountServiceAccountToken` can be removed after porting to brancz/kuberentes-grafana
+    deployment+: {
+      spec+: {
+        template+: {
+          spec+: {
+            automountServiceAccountToken: false,
+            containers: std.map(function(c) c {
+              securityContext+: {
+                allowPrivilegeEscalation: false,
+                readOnlyRootFilesystem: true,
+              },
+              volumeMounts+: [{
+                mountPath: '/tmp',
+                name: 'tmp-plugins',
+                readOnly: false,
+              }],
+            }, super.containers),
+            volumes+: [{
+              name: 'tmp-plugins',
+              emptyDir: {},
+            }],
+          },
+        },
       },
     },
   }

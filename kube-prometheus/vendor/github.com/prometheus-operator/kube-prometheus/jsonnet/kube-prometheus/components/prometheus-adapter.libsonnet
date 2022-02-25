@@ -226,6 +226,11 @@ function(params) {
         { name: 'volume-serving-cert', mountPath: '/var/run/serving-cert', readOnly: false },
         { name: 'config', mountPath: '/etc/adapter', readOnly: false },
       ],
+      securityContext: {
+        allowPrivilegeEscalation: false,
+        readOnlyRootFilesystem: true,
+        capabilities: { drop: ['ALL'] },
+      },
     };
 
     {
@@ -248,6 +253,7 @@ function(params) {
           spec: {
             containers: [c],
             serviceAccountName: $.serviceAccount.metadata.name,
+            automountServiceAccountToken: true,
             nodeSelector: { 'kubernetes.io/os': 'linux' },
             volumes: [
               { name: 'tmpfs', emptyDir: {} },
@@ -263,6 +269,7 @@ function(params) {
     apiVersion: 'v1',
     kind: 'ServiceAccount',
     metadata: pa._metadata,
+    automountServiceAccountToken: false,
   },
 
   clusterRole: {

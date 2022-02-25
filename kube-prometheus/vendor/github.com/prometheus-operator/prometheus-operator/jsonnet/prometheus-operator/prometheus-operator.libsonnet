@@ -137,6 +137,8 @@ function(params) {
       resources: po.config.resources,
       securityContext: {
         allowPrivilegeEscalation: false,
+        readOnlyRootFilesystem: true,
+        capabilities: { drop: ['ALL'] },
       },
     };
     {
@@ -168,6 +170,7 @@ function(params) {
               runAsUser: 65534,
             },
             serviceAccountName: po.config.name,
+            automountServiceAccountToken: true,
           },
         },
       },
@@ -181,6 +184,7 @@ function(params) {
       namespace: po.config.namespace,
       labels: po.config.commonLabels,
     },
+    automountServiceAccountToken: false,
   },
 
   service: {
