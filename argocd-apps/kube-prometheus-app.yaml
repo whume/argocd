@@ -16,7 +16,7 @@ spec:
           - vendored
       # recurse: true
     path: examples/continuous-delivery/argocd/kube-prometheus
-    repoURL: git@github.com:prometheus-operator/kube-prometheus.git
+    repoURL: https://github.com:prometheus-operator/kube-prometheus.git
     targetRevision: HEAD
   syncPolicy:
     automated: {}
