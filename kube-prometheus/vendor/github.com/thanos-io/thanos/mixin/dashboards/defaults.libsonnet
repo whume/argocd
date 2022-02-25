@@ -1,4 +1,3 @@
-local utils = import '../lib/utils.libsonnet';
 {
   local thanos = self,
   local grafanaDashboards = super.grafanaDashboards,
@@ -14,8 +13,7 @@ local utils = import '../lib/utils.libsonnet';
   // Automatically add a uid to each dashboard based on the base64 encoding
   // of the file name and set the timezone to be 'default'.
   grafanaDashboards:: {
-    local component = utils.sanitizeComponentName(std.split(filename, '.')[0]),
-
+    local component = std.split(filename, '.')[0],
     [filename]: grafanaDashboards[filename] {
       uid: std.md5(filename),
       timezone: thanos.dashboard.timezone,

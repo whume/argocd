@@ -114,7 +114,6 @@ function(params) {
     apiVersion: 'v1',
     kind: 'ServiceAccount',
     metadata: ne._metadata,
-    automountServiceAccountToken: false,
   },
 
   service: {
@@ -182,11 +181,6 @@ function(params) {
         { name: 'root', mountPath: '/host/root', mountPropagation: 'HostToContainer', readOnly: true },
       ],
       resources: ne._config.resources,
-      securityContext: {
-        allowPrivilegeEscalation: false,
-        readOnlyRootFilesystem: true,
-        capabilities: { drop: ['ALL'], add: ['SYS_TIME'] },
-      },
     };
 
     local kubeRbacProxy = krp({
@@ -202,12 +196,6 @@ function(params) {
       // used by the service is tied to the proxy container. We *could*
       // forgo declaring the host port, however it is important to declare
       // it so that the scheduler can decide if the pod is schedulable.
-      //
-      // Although hostPort might not seem necessary, kubernetes adds it anyway
-      // when running with 'hostNetwork'. We might as well make sure it works
-      // the way we want.
-      //
-      // See also: https://github.com/kubernetes/kubernetes/blob/1945829906546caf867992669a0bfa588edf8be6/pkg/apis/core/v1/defaults.go#L402-L411
       ports: [
         { name: 'https', containerPort: ne._config.port, hostPort: ne._config.port },
       ],
@@ -247,9 +235,7 @@ function(params) {
               { name: 'sys', hostPath: { path: '/sys' } },
               { name: 'root', hostPath: { path: '/' } },
             ],
-            automountServiceAccountToken: true,
             serviceAccountName: ne._config.name,
-            priorityClassName: 'system-cluster-critical',
             securityContext: {
               runAsUser: 65534,
               runAsNonRoot: true,

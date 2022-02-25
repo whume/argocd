@@ -35,10 +35,6 @@ local defaults = {
       source_matchers: ['severity = warning'],
       target_matchers: ['severity = info'],
       equal: ['namespace', 'alertname'],
-    }, {
-      source_matchers: ['alertname = InfoInhibitor'],
-      target_matchers: ['severity = info'],
-      equal: ['namespace'],
     }],
     route: {
       group_by: ['namespace'],
@@ -48,7 +44,6 @@ local defaults = {
       receiver: 'Default',
       routes: [
         { receiver: 'Watchdog', matchers: ['alertname = Watchdog'] },
-        { receiver: 'null', matchers: ['alertname = InfoInhibitor'] },
         { receiver: 'Critical', matchers: ['severity = critical'] },
       ],
     },
@@ -56,7 +51,6 @@ local defaults = {
       { name: 'Default' },
       { name: 'Watchdog' },
       { name: 'Critical' },
-      { name: 'null' },
     ],
   },
   replicas: 3,
@@ -121,7 +115,6 @@ function(params) {
     apiVersion: 'v1',
     kind: 'ServiceAccount',
     metadata: am._metadata,
-    automountServiceAccountToken: false,
   },
 
   service: {

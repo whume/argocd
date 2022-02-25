@@ -288,6 +288,7 @@ function(params) {
       },
       podMetricsEndpoints: [{
         honorLabels: true,
+        targetPort: 10249,
         relabelings: [
           {
             action: 'replace',
@@ -295,13 +296,6 @@ function(params) {
             replacement: '$1',
             sourceLabels: ['__meta_kubernetes_pod_node_name'],
             targetLabel: 'instance',
-          },
-          {
-            action: 'replace',
-            regex: '(.*)',
-            replacement: '$1:10249',
-            targetLabel: '__address__',
-            sourceLabels: ['__meta_kubernetes_pod_ip'],
           },
         ],
       }],

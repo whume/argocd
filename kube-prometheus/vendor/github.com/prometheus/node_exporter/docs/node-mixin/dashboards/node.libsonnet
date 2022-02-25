@@ -211,8 +211,8 @@ local gauge = promgrafonnet.gauge;
       .addTemplate(
         {
           current: {
-            text: 'default',
-            value: 'default',
+            text: 'Prometheus',
+            value: 'Prometheus',
           },
           hide: 0,
           label: 'Data Source',
