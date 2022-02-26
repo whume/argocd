@@ -12,7 +12,6 @@ spec:
   source:
     directory:
       exclude: "jsonnetfile.json"
-      exclude: "jsonnetfile.lock.json"
       jsonnet:
         libs:
           - vendor
