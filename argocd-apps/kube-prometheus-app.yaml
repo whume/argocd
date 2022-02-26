@@ -11,6 +11,7 @@ spec:
   project: monitoring
   source:
     directory:
+      exclude: "jsonnetfile.json"
       jsonnet:
         libs:
           - kube-prometheus/vendor
