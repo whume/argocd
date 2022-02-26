@@ -33,7 +33,7 @@ spec:
     server: https://kubernetes.default.svc
   project: monitoring
   source:
-    path: kube-prometheus/mainfests
+    path: kube-prometheus/manifests
     repoURL: https://github.com/whume/argocd.git
     targetRevision: HEAD
   syncPolicy:
