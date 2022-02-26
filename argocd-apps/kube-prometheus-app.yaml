@@ -2,21 +2,17 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: kube-prometheus
+  name: kube-prometheus-setup
   namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
 spec:
   destination:
     namespace: monitoring
     server: https://kubernetes.default.svc
   project: monitoring
   source:
-    directory:
-      exclude: "jsonnetfile.json"
-      jsonnet:
-        libs:
-          - kube-prometheus/vendor
-      # recurse: true
-    path: kube-prometheus/config
+    path: kube-prometheus/manifests/setup
     repoURL: https://github.com/whume/argocd.git
     targetRevision: HEAD
   syncPolicy:
@@ -27,15 +23,17 @@ spec:
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: kube-prometheus-crds
+  name: kube-prometheus
   namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "5"
 spec:
   destination:
     namespace: monitoring
     server: https://kubernetes.default.svc
   project: monitoring
   source:
-    path: kube-prometheus/crds
+    path: kube-prometheus/mainfests
     repoURL: https://github.com/whume/argocd.git
     targetRevision: HEAD
   syncPolicy:
