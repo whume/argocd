@@ -26,11 +26,14 @@ jb install github.com/prometheus-operator/kube-prometheus/jsonnet/kube-prometheu
 ## Compile the manifests
 ./build.sh kube-prometheus.jsonnet # Creates ./manifests and ./manifests/setup folders and populates with manifests files
 ```
-### Add `argocd.argoproj.io/sync-options: Replace=true` annotation to `prometheus-operator-0prometheusCustomResourceDefinition.yaml` 
+### Add `argocd.argoproj.io/sync-options: Replace=true` annotation to the following CRD's
 
-[<img src="./images/annotation.PNG" />]
+- ./manifests/setup/prometheus-operator-0prometheusCustomResourceDefinition.yamls
 
-[Example](https://github.com/whume/argocd/commit/d46272f57398eca3ca50aa252cd8def5af88702c?diff=unified)
+### Example of change
+<img src="./images/annotation.PNG" />
+
+[Commit for annotation change](https://github.com/whume/argocd/commit/d46272f57398eca3ca50aa252cd8def5af88702c?diff=unified)
 
 ## License
 [MIT](https://choosealicense.com/licenses/mit/)
