@@ -11,7 +11,7 @@ spec:
   project: monitoring
   source:
     directory:
-      include: "**./*.libsonnet"
+      include: "**./*.jsonnet"
       jsonnet:
         libs:
           - vendor
