@@ -15,6 +15,7 @@ spec:
       jsonnet:
         libs:
           - vendor
+      recurse: true
     path: kube-prometheus/
     repoURL: https://github.com/whume/argocd.git
     targetRevision: HEAD
