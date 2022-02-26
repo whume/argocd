@@ -15,8 +15,6 @@ spec:
       jsonnet:
         libs:
           - vendored
-          - jsonnet
-          - jsonnetfile.json
     path: kube-prometheus/
     repoURL: https://github.com/whume/argocd.git
     targetRevision: HEAD
