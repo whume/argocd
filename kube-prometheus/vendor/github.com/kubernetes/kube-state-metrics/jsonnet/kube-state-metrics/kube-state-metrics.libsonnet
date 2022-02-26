@@ -163,12 +163,7 @@
         { name: 'http-metrics', containerPort: 8080 },
         { name: 'telemetry', containerPort: 8081 },
       ],
-      securityContext: { 
-        runAsUser: 65534, 
-        allowPrivilegeEscalation: false,        
-        readOnlyRootFilesystem: true,
-        capabilities: { drop: ['ALL'] },
-      },
+      securityContext: { runAsUser: 65534 },
       livenessProbe: { timeoutSeconds: 5, initialDelaySeconds: 5, httpGet: {
         port: 8080,
         path: '/healthz',
@@ -197,7 +192,6 @@
           spec: {
             containers: [c],
             serviceAccountName: ksm.serviceAccount.metadata.name,
-            automountServiceAccountToken: true,
             nodeSelector: { 'kubernetes.io/os': 'linux' },
           },
         },
@@ -213,7 +207,6 @@
         namespace: ksm.namespace,
         labels: ksm.commonLabels + ksm.extraRecommendedLabels,
       },
-      automountServiceAccountToken: false,
     },
 
   service:
@@ -309,7 +302,6 @@
             spec: {
               containers: [c],
               serviceAccountName: ksm.serviceAccount.metadata.name,
-              automountServiceAccountToken: true,
               nodeSelector: { 'kubernetes.io/os': 'linux' },
             },
           },

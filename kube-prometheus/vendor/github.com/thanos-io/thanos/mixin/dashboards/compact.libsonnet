@@ -1,4 +1,5 @@
 local g = import '../lib/thanos-grafana-builder/builder.libsonnet';
+local utils = import '../lib/utils.libsonnet';
 
 {
   local thanos = self,
