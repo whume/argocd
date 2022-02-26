@@ -11,13 +11,11 @@ spec:
   project: monitoring
   source:
     directory:
-      exclude: "jsonnetfile.json,/vendor/github.com/brancz/kubernetes-grafana/grafana/jsonnetfile.json"
       jsonnet:
         libs:
-          - vendor
           - kube-prometheus/vendor
       recurse: true
-    path: kube-prometheus/
+    path: kube-prometheus/config
     repoURL: https://github.com/whume/argocd.git
     targetRevision: HEAD
   syncPolicy:
