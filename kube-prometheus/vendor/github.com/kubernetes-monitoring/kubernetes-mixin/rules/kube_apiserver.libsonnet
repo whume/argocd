@@ -9,12 +9,13 @@
     // If you want to change these, make sure the "le" buckets exist on the histogram!
     kubeApiserverReadResourceLatency: '1',
     kubeApiserverReadNamespaceLatency: '5',
-    kubeApiserverReadClusterLatency: '30',
+    kubeApiserverReadClusterLatency: '40',  // 30 doesn't exist as a bucket and thus it's 40
     kubeApiserverWriteLatency: '1',
   },
 
   prometheusRules+:: {
     local SLODays = $._config.SLOs.apiserver.days + 'd',
+    local SLOTarget = $._config.SLOs.apiserver.target,
     local verbs = [
       { type: 'read', selector: $._config.kubeApiserverReadSelector },
       { type: 'write', selector: $._config.kubeApiserverWriteSelector },
@@ -157,53 +158,29 @@
           for verb in verbs
         ] + [
           {
-            record: 'cluster_verb_scope:apiserver_request_duration_seconds_count:increase1h',
-            expr: |||
-              sum by (%(clusterLabel)s, verb, scope) (increase(apiserver_request_duration_seconds_count[1h]))
-            ||| % $._config,
-          },
-          {
-            record: 'cluster_verb_scope:apiserver_request_duration_seconds_count:increase%s' % SLODays,
-            expr: |||
-              sum by (%s, verb, scope) (avg_over_time(cluster_verb_scope:apiserver_request_duration_seconds_count:increase1h[%s]) * 24 * %s)
-            ||| % [$._config.clusterLabel, SLODays, $._config.SLOs.apiserver.days],
-          },
-          {
-            record: 'cluster_verb_scope_le:apiserver_request_duration_seconds_bucket:increase1h',
-            expr: |||
-              sum by (%(clusterLabel)s, verb, scope, le) (increase(apiserver_request_duration_seconds_bucket[1h]))
-            ||| % $._config,
-          },
-          {
-            record: 'cluster_verb_scope_le:apiserver_request_duration_seconds_bucket:increase%s' % SLODays,
-            expr: |||
-              sum by (%s, verb, scope, le) (avg_over_time(cluster_verb_scope_le:apiserver_request_duration_seconds_bucket:increase1h[%s]) * 24 * %s)
-            ||| % [$._config.clusterLabel, SLODays, $._config.SLOs.apiserver.days],
-          },
-          {
             record: 'apiserver_request:availability%s' % SLODays,
             expr: |||
               1 - (
                 (
                   # write too slow
-                  sum by (%(clusterLabel)s) (cluster_verb_scope:apiserver_request_duration_seconds_count:increase%(SLODays)s{%(kubeApiserverWriteSelector)s})
+                  sum by (%(clusterLabel)s) (increase(apiserver_request_duration_seconds_count{%(kubeApiserverWriteSelector)s}[%(SLODays)s]))
                   -
-                  sum by (%(clusterLabel)s) (cluster_verb_scope_le:apiserver_request_duration_seconds_bucket:increase%(SLODays)s{%(kubeApiserverWriteSelector)s,le="%(kubeApiserverWriteLatency)s"})
+                  sum by (%(clusterLabel)s) (increase(apiserver_request_duration_seconds_bucket{%(kubeApiserverWriteSelector)s,le="%(kubeApiserverWriteLatency)s"}[%(SLODays)s]))
                 ) +
                 (
                   # read too slow
-                  sum by (%(clusterLabel)s) (cluster_verb_scope:apiserver_request_duration_seconds_count:increase%(SLODays)s{%(kubeApiserverReadSelector)s})
+                  sum by (%(clusterLabel)s) (increase(apiserver_request_duration_seconds_count{%(kubeApiserverReadSelector)s}[%(SLODays)s]))
                   -
                   (
                     (
-                      sum by (%(clusterLabel)s) (cluster_verb_scope_le:apiserver_request_duration_seconds_bucket:increase%(SLODays)s{%(kubeApiserverReadSelector)s,scope=~"resource|",le="%(kubeApiserverReadResourceLatency)s"})
+                      sum by (%(clusterLabel)s) (increase(apiserver_request_duration_seconds_bucket{%(kubeApiserverReadSelector)s,scope=~"resource|",le="%(kubeApiserverReadResourceLatency)s"}[%(SLODays)s]))
                       or
                       vector(0)
                     )
                     +
-                    sum by (%(clusterLabel)s) (cluster_verb_scope_le:apiserver_request_duration_seconds_bucket:increase%(SLODays)s{%(kubeApiserverReadSelector)s,scope="namespace",le="%(kubeApiserverReadNamespaceLatency)s"})
+                    sum by (%(clusterLabel)s) (increase(apiserver_request_duration_seconds_bucket{%(kubeApiserverReadSelector)s,scope="namespace",le="%(kubeApiserverReadNamespaceLatency)s"}[%(SLODays)s]))
                     +
-                    sum by (%(clusterLabel)s) (cluster_verb_scope_le:apiserver_request_duration_seconds_bucket:increase%(SLODays)s{%(kubeApiserverReadSelector)s,scope="cluster",le="%(kubeApiserverReadClusterLatency)s"})
+                    sum by (%(clusterLabel)s) (increase(apiserver_request_duration_seconds_bucket{%(kubeApiserverReadSelector)s,scope="cluster",le="%(kubeApiserverReadClusterLatency)s"}[%(SLODays)s]))
                   )
                 ) +
                 # errors
@@ -220,19 +197,19 @@
             record: 'apiserver_request:availability%s' % SLODays,
             expr: |||
               1 - (
-                sum by (%(clusterLabel)s) (cluster_verb_scope:apiserver_request_duration_seconds_count:increase%(SLODays)s{%(kubeApiserverReadSelector)s})
+                sum by (%(clusterLabel)s) (increase(apiserver_request_duration_seconds_count{%(kubeApiserverSelector)s,%(kubeApiserverReadSelector)s}[%(SLODays)s]))
                 -
                 (
                   # too slow
                   (
-                    sum by (%(clusterLabel)s) (cluster_verb_scope_le:apiserver_request_duration_seconds_bucket:increase%(SLODays)s{%(kubeApiserverReadSelector)s,scope=~"resource|",le="%(kubeApiserverReadResourceLatency)s"})
+                    sum by (%(clusterLabel)s) (increase(apiserver_request_duration_seconds_bucket{%(kubeApiserverSelector)s,%(kubeApiserverReadSelector)s,scope=~"resource|",le="%(kubeApiserverReadResourceLatency)s"}[%(SLODays)s]))
                     or
                     vector(0)
                   )
                   +
-                  sum by (%(clusterLabel)s) (cluster_verb_scope_le:apiserver_request_duration_seconds_bucket:increase%(SLODays)s{%(kubeApiserverReadSelector)s,scope="namespace",le="%(kubeApiserverReadNamespaceLatency)s"})
+                  sum by (%(clusterLabel)s) (increase(apiserver_request_duration_seconds_bucket{%(kubeApiserverSelector)s,%(kubeApiserverReadSelector)s,scope="namespace",le="%(kubeApiserverReadNamespaceLatency)s"}[%(SLODays)s]))
                   +
-                  sum by (%(clusterLabel)s) (cluster_verb_scope_le:apiserver_request_duration_seconds_bucket:increase%(SLODays)s{%(kubeApiserverReadSelector)s,scope="cluster",le="%(kubeApiserverReadClusterLatency)s"})
+                  sum by (%(clusterLabel)s) (increase(apiserver_request_duration_seconds_bucket{%(kubeApiserverSelector)s,%(kubeApiserverReadSelector)s,scope="cluster",le="%(kubeApiserverReadClusterLatency)s"}[%(SLODays)s]))
                 )
                 +
                 # errors
@@ -240,7 +217,7 @@
               )
               /
               sum by (%(clusterLabel)s) (code:apiserver_request_total:increase%(SLODays)s{verb="read"})
-            ||| % ($._config { SLODays: SLODays, days: $._config.SLOs.apiserver.days }),
+            ||| % ($._config { SLODays: SLODays }),
             labels: {
               verb: 'read',
             },
@@ -251,9 +228,9 @@
               1 - (
                 (
                   # too slow
-                  sum by (%(clusterLabel)s) (cluster_verb_scope:apiserver_request_duration_seconds_count:increase%(SLODays)s{%(kubeApiserverWriteSelector)s})
+                  sum by (%(clusterLabel)s) (increase(apiserver_request_duration_seconds_count{%(kubeApiserverWriteSelector)s}[%(SLODays)s]))
                   -
-                  sum by (%(clusterLabel)s) (cluster_verb_scope_le:apiserver_request_duration_seconds_bucket:increase%(SLODays)s{%(kubeApiserverWriteSelector)s,le="%(kubeApiserverWriteLatency)s"})
+                  sum by (%(clusterLabel)s) (increase(apiserver_request_duration_seconds_bucket{%(kubeApiserverWriteSelector)s,le="%(kubeApiserverWriteLatency)s"}[%(SLODays)s]))
                 )
                 +
                 # errors
@@ -261,7 +238,7 @@
               )
               /
               sum by (%(clusterLabel)s) (code:apiserver_request_total:increase%(SLODays)s{verb="write"})
-            ||| % ($._config { SLODays: SLODays, days: $._config.SLOs.apiserver.days }),
+            ||| % ($._config { SLODays: SLODays }),
             labels: {
               verb: 'write',
             },

@@ -46,7 +46,7 @@
       spec+:
         $.antiaffinity(
           $.alertmanager._config.selectorLabels,
-          $.values.alertmanager.namespace,
+          $.values.common.namespace,
           $.values.alertmanager.podAntiAffinity,
           $.values.alertmanager.podAntiAffinityTopologyKey,
         ),
@@ -58,7 +58,7 @@
       spec+:
         $.antiaffinity(
           $.prometheus._config.selectorLabels,
-          $.values.prometheus.namespace,
+          $.values.common.namespace,
           $.values.prometheus.podAntiAffinity,
           $.values.prometheus.podAntiAffinityTopologyKey,
         ),
@@ -72,7 +72,7 @@
           spec+:
             $.antiaffinity(
               $.blackboxExporter._config.selectorLabels,
-              $.values.blackboxExporter.namespace,
+              $.values.common.namespace,
               $.values.blackboxExporter.podAntiAffinity,
               $.values.blackboxExporter.podAntiAffinityTopologyKey,
             ),
@@ -88,7 +88,7 @@
           spec+:
             $.antiaffinity(
               $.prometheusAdapter._config.selectorLabels,
-              $.values.prometheusAdapter.namespace,
+              $.values.common.namespace,
               $.values.prometheusAdapter.podAntiAffinity,
               $.values.prometheusAdapter.podAntiAffinityTopologyKey,
             ),

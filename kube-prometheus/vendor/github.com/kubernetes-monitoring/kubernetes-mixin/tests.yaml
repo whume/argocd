@@ -13,8 +13,6 @@ tests:
     values: '1024 1024 1024 1024'
   - series: 'kubelet_volume_stats_used_bytes{job="kubelet",namespace="monitoring",persistentvolumeclaim="somepvc"}'
     values: '16 64 512 1024'
-  - series: 'kube_persistentvolumeclaim_access_mode{job="ksm",namespace="monitoring",persistentvolumeclaim="somepvc", access_mode="ReadWriteOnce", service="kube-state-metrics"}'
-    values: '1 1 1 1'
   alert_rule_test:
   - eval_time: 1m
     alertname: KubePersistentVolumeFillingUp
@@ -35,27 +33,6 @@ tests:
         description: 'The PersistentVolume claimed by somepvc in Namespace monitoring is only 1.562% free.'
         runbook_url: https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubepersistentvolumefillingup
 
-# Don't alert when PVC access_mode is ReadOnlyMany
-- interval: 1m
-  input_series:
-  - series: 'kubelet_volume_stats_available_bytes{job="kubelet",namespace="monitoring",persistentvolumeclaim="somepvc"}'
-    values: '1024 512 64 16'
-  - series: 'kubelet_volume_stats_capacity_bytes{job="kubelet",namespace="monitoring",persistentvolumeclaim="somepvc"}'
-    values: '1024 1024 1024 1024'
-  - series: 'kubelet_volume_stats_used_bytes{job="kubelet",namespace="monitoring",persistentvolumeclaim="somepvc"}'
-    values: '16 64 512 1024'
-  - series: 'kube_persistentvolumeclaim_access_mode{job="ksm",namespace="monitoring",persistentvolumeclaim="somepvc", access_mode="ReadOnlyMany", service="kube-state-metrics"}'
-    values: '1 1 1 1'
-  alert_rule_test:
-  - eval_time: 1m
-    alertname: KubePersistentVolumeFillingUp
-  - eval_time: 2m
-    alertname: KubePersistentVolumeFillingUp
-  - eval_time: 3m
-    alertname: KubePersistentVolumeFillingUp
-  - eval_time: 4m
-    alertname: KubePersistentVolumeFillingUp
-
 # Block volume mounts can report 0 for the kubelet_volume_stats_used_bytes metric but it shouldn't trigger the KubePersistentVolumeFillingUp alert.
 # See https://github.com/kubernetes/kubernetes/commit/b997e0e4d6ccbead435a47d6ac75b0db3d17252f for details.
 - interval: 1m
@@ -75,29 +52,6 @@ tests:
     alertname: KubePersistentVolumeFillingUp
   - eval_time: 4m
     alertname: KubePersistentVolumeFillingUp
-
-  # Don't alert when PVC has been labelled as fully utilised
-- interval: 1m
-  input_series:
-    - series: 'kubelet_volume_stats_available_bytes{job="kubelet",namespace="monitoring",persistentvolumeclaim="somepvc"}'
-      values: '1024 512 64 16'
-    - series: 'kubelet_volume_stats_capacity_bytes{job="kubelet",namespace="monitoring",persistentvolumeclaim="somepvc"}'
-      values: '1024 1024 1024 1024'
-    - series: 'kubelet_volume_stats_used_bytes{job="kubelet",namespace="monitoring",persistentvolumeclaim="somepvc"}'
-      values: '16 64 512 1024'
-    - series: 'kube_persistentvolumeclaim_access_mode{job="ksm",namespace="monitoring",persistentvolumeclaim="somepvc", access_mode="ReadWriteOnce", service="kube-state-metrics"}'
-      values: '1 1 1 1'
-    - series: 'kube_persistentvolumeclaim_labels{job="kubelet",namespace="monitoring",persistentvolumeclaim="somepvc",label_excluded_from_alerts="true"}'
-      values: '1 1 1 1'
-  alert_rule_test:
-    - eval_time: 1m
-      alertname: KubePersistentVolumeFillingUp
-    - eval_time: 2m
-      alertname: KubePersistentVolumeFillingUp
-    - eval_time: 3m
-      alertname: KubePersistentVolumeFillingUp
-    - eval_time: 4m
-      alertname: KubePersistentVolumeFillingUp
 
 - interval: 1m
   input_series:
@@ -129,8 +83,6 @@ tests:
     values: '32768+0x61'
   - series: 'kubelet_volume_stats_used_bytes{job="kubelet",namespace="monitoring",persistentvolumeclaim="somepvc"}'
     values: '1024+10x61'
-  - series: 'kube_persistentvolumeclaim_access_mode{job="ksm",namespace="monitoring",persistentvolumeclaim="somepvc", access_mode="ReadWriteOnce", service="kube-state-metrics"}'
-    values: '1x61'
   alert_rule_test:
   - eval_time: 61m
     alertname: KubePersistentVolumeFillingUp
@@ -168,37 +120,6 @@ tests:
   - eval_time: 61m
     alertname: KubePersistentVolumeFillingUp
 
-# Don't alert when PVC access_mode is ReadOnlyMany
-- interval: 1m
-  input_series:
-  - series: 'kubelet_volume_stats_available_bytes{job="kubelet",namespace="monitoring",persistentvolumeclaim="somepvc"}'
-    values: '1024-10x61'
-  - series: 'kubelet_volume_stats_capacity_bytes{job="kubelet",namespace="monitoring",persistentvolumeclaim="somepvc"}'
-    values: '32768+0x61'
-  - series: 'kubelet_volume_stats_used_bytes{job="kubelet",namespace="monitoring",persistentvolumeclaim="somepvc"}'
-    values: '1x61'
-  - series: 'kube_persistentvolumeclaim_access_mode{job="ksm",namespace="monitoring",persistentvolumeclaim="somepvc", access_mode="ReadOnlyMany", service="kube-state-metrics"}'
-    values: '1x61'
-  alert_rule_test:
-  - eval_time: 61m
-    alertname: KubePersistentVolumeFillingUp
-
-- interval: 1m
-  input_series:
-    - series: 'kubelet_volume_stats_available_bytes{job="kubelet",namespace="monitoring",persistentvolumeclaim="somepvc"}'
-      values: '1024-10x61'
-    - series: 'kubelet_volume_stats_capacity_bytes{job="kubelet",namespace="monitoring",persistentvolumeclaim="somepvc"}'
-      values: '32768+0x61'
-    - series: 'kubelet_volume_stats_used_bytes{job="kubelet",namespace="monitoring",persistentvolumeclaim="somepvc"}'
-      values: '1024+10x61'
-    - series: 'kube_persistentvolumeclaim_access_mode{job="ksm",namespace="monitoring",persistentvolumeclaim="somepvc", access_mode="ReadWriteOnce", service="kube-state-metrics"}'
-      values: '1x61'
-    - series: 'kube_persistentvolumeclaim_labels{job="ksm",namespace="monitoring",persistentvolumeclaim="somepvc",label_excluded_from_alerts="true"}'
-      values: '1x61'
-  alert_rule_test:
-    - eval_time: 61m
-      alertname: KubePersistentVolumeFillingUp
-
 - interval: 1m
   input_series:
   - series: 'kube_node_status_capacity{resource="pods",instance="172.17.0.5:8443",node="minikube",job="kube-state-metrics", namespace="kube-system"}'
@@ -223,7 +144,7 @@ tests:
     exp_alerts:
     - exp_labels:
         node: minikube
-        severity: info
+        severity: warning
       exp_annotations:
         summary: "Kubelet is running at capacity."
         description: "Kubelet 'minikube' is running at 100% of its Pod capacity."
@@ -858,8 +779,8 @@ tests:
     - exp_labels:
         severity: warning
       exp_annotations:
-        summary: "The kubernetes apiserver has terminated 33.33% of its incoming requests."
-        description: "The kubernetes apiserver has terminated 33.33% of its incoming requests."
+        summary: "The apiserver has terminated 33.33% of its incoming requests."
+        description: "The apiserver has terminated 33.33% of its incoming requests."
         runbook_url: "https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubeapiterminatedrequests"
 
 - interval: 1m
@@ -899,89 +820,3 @@ tests:
           summary: "Pod is crash looping."
   - eval_time: 21m    # alert recovers
     alertname: KubePodCrashLooping
-
-# When ResourceQuota has both cpu and requests.cpu, min value of those will be taken into account for quota calculation.
-- interval: 1m
-  input_series:
-  - series: 'kube_resourcequota{namespace="test", resource="cpu", type="hard", job="kube-state-metrics"}'
-    values: '1000x10'
-  - series: 'kube_resourcequota{namespace="test", resource="requests.cpu", type="hard", job="kube-state-metrics"}'
-    values: '100x10'
-  - series: 'kube_resourcequota{namespace="test1", resource="requests.cpu", type="hard", job="kube-state-metrics"}'
-    values: '50x10'
-  - series: 'kube_node_status_allocatable{namespace="monitoring", node="n1", resource="cpu", job="kube-state-metrics"}'
-    values: '100x10'
-  - series: 'kube_node_status_allocatable{namespace="monitoring", node="n2", resource="cpu", job="kube-state-metrics"}'
-    values: '100x10'
-  alert_rule_test:
-  - eval_time: 4m
-    alertname: KubeCPUQuotaOvercommit
-  - eval_time: 5m    # alert shouldn't fire
-    alertname: KubeCPUQuotaOvercommit
-- interval: 1m
-  input_series:
-  - series: 'kube_resourcequota{namespace="test", resource="cpu", type="hard", job="kube-state-metrics"}'
-    values: '1000x10'
-  - series: 'kube_resourcequota{namespace="test", resource="requests.cpu", type="hard", job="kube-state-metrics"}'
-    values: '200x10'
-  - series: 'kube_resourcequota{namespace="test1", resource="requests.cpu", type="hard", job="kube-state-metrics"}'
-    values: '200x10'
-  - series: 'kube_node_status_allocatable{namespace="monitoring", node="n1", resource="cpu", job="kube-state-metrics"}'
-    values: '100x10'
-  - series: 'kube_node_status_allocatable{namespace="monitoring", node="n2", resource="cpu", job="kube-state-metrics"}'
-    values: '100x10'
-  alert_rule_test:
-  - eval_time: 4m
-    alertname: KubeCPUQuotaOvercommit
-  - eval_time: 5m    # alert shouldn't fire
-    alertname: KubeCPUQuotaOvercommit
-    exp_alerts:
-    - exp_labels:
-        severity: "warning"
-      exp_annotations:
-        description: 'Cluster has overcommitted CPU resource requests for Namespaces.'
-        runbook_url: "https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubecpuquotaovercommit"
-        summary: "Cluster has overcommitted CPU resource requests."
-
-# When ResourceQuota has both memory and requests.memory, min value of those will be taken into account for quota calculation.
-- interval: 1m
-  input_series:
-  - series: 'kube_resourcequota{namespace="test", resource="memory", type="hard", job="kube-state-metrics"}'
-    values: '1000x10'
-  - series: 'kube_resourcequota{namespace="test", resource="requests.memory", type="hard", job="kube-state-metrics"}'
-    values: '100x10'
-  - series: 'kube_resourcequota{namespace="test1", resource="requests.memory", type="hard", job="kube-state-metrics"}'
-    values: '50x10'
-  - series: 'kube_node_status_allocatable{namespace="monitoring", node="n1", resource="memory", job="kube-state-metrics"}'
-    values: '100x10'
-  - series: 'kube_node_status_allocatable{namespace="monitoring", node="n2", resource="memory", job="kube-state-metrics"}'
-    values: '100x10'
-  alert_rule_test:
-  - eval_time: 4m
-    alertname: KubeMemoryQuotaOvercommit
-  - eval_time: 5m    # alert shouldn't fire
-    alertname: KubeMemoryQuotaOvercommit
-- interval: 1m
-  input_series:
-  - series: 'kube_resourcequota{namespace="test", resource="memory", type="hard", job="kube-state-metrics"}'
-    values: '1000x10'
-  - series: 'kube_resourcequota{namespace="test", resource="requests.memory", type="hard", job="kube-state-metrics"}'
-    values: '500x10'
-  - series: 'kube_resourcequota{namespace="test1", resource="requests.memory", type="hard", job="kube-state-metrics"}'
-    values: '500x10'
-  - series: 'kube_node_status_allocatable{namespace="monitoring", node="n1", resource="memory", job="kube-state-metrics"}'
-    values: '10x10'
-  - series: 'kube_node_status_allocatable{namespace="monitoring", node="n2", resource="memory", job="kube-state-metrics"}'
-    values: '10x10'
-  alert_rule_test:
-  - eval_time: 4m
-    alertname: KubeMemoryQuotaOvercommit
-  - eval_time: 5m    # alert shouldn't fire
-    alertname: KubeMemoryQuotaOvercommit
-    exp_alerts:
-    - exp_labels:
-        severity: "warning"
-      exp_annotations:
-        description: 'Cluster has overcommitted memory resource requests for Namespaces.'
-        runbook_url: "https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubememoryquotaovercommit"
-        summary: "Cluster has overcommitted memory resource requests."

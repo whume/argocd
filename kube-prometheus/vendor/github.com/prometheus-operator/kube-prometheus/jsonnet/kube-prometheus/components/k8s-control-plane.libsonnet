@@ -1,14 +1,12 @@
 local relabelings = import '../addons/dropping-deprecated-metrics-relabelings.libsonnet';
 
 local defaults = {
-  // Convention: Top-level fields related to CRDs are public, other fields are hidden
-  // If there is no CRD for the component, everything is hidden in defaults.
-  namespace:: error 'must provide namespace',
+  namespace: error 'must provide namespace',
   commonLabels:: {
     'app.kubernetes.io/name': 'kube-prometheus',
     'app.kubernetes.io/part-of': 'kube-prometheus',
   },
-  mixin:: {
+  mixin: {
     ruleLabels: {},
     _config: {
       cadvisorSelector: 'job="kubelet", metrics_path="/metrics/cadvisor"',
@@ -24,39 +22,28 @@ local defaults = {
       hostNetworkInterfaceSelector: 'device!~"veth.+"',
     },
   },
-  kubeProxy:: false,
+  kubeProxy: false,
 };
 
 function(params) {
   local k8s = self,
   _config:: defaults + params,
-  _metadata:: {
-    labels: k8s._config.commonLabels,
-    namespace: k8s._config.namespace,
-  },
 
   mixin:: (import 'github.com/kubernetes-monitoring/kubernetes-mixin/mixin.libsonnet') {
     _config+:: k8s._config.mixin._config,
-  } + {
-    // Filter-out alerts related to kube-proxy when `kubeProxy: false`
-    [if !(defaults + params).kubeProxy then 'prometheusAlerts']+:: {
-      groups: std.filter(
-        function(g) !std.member(['kubernetes-system-kube-proxy'], g.name),
-        super.groups
-      ),
-    },
   },
 
   prometheusRule: {
     apiVersion: 'monitoring.coreos.com/v1',
     kind: 'PrometheusRule',
-    metadata: k8s._metadata {
+    metadata: {
+      labels: k8s._config.commonLabels + k8s._config.mixin.ruleLabels,
       name: 'kubernetes-monitoring-rules',
-      labels+: k8s._config.mixin.ruleLabels,
+      namespace: k8s._config.namespace,
     },
     spec: {
-      local r = if std.objectHasAll(k8s.mixin, 'prometheusRules') then k8s.mixin.prometheusRules.groups else [],
-      local a = if std.objectHasAll(k8s.mixin, 'prometheusAlerts') then k8s.mixin.prometheusAlerts.groups else [],
+      local r = if std.objectHasAll(k8s.mixin, 'prometheusRules') then k8s.mixin.prometheusRules.groups else {},
+      local a = if std.objectHasAll(k8s.mixin, 'prometheusAlerts') then k8s.mixin.prometheusAlerts.groups else {},
       groups: a + r,
     },
   },
@@ -64,9 +51,10 @@ function(params) {
   serviceMonitorKubeScheduler: {
     apiVersion: 'monitoring.coreos.com/v1',
     kind: 'ServiceMonitor',
-    metadata: k8s._metadata {
+    metadata: {
       name: 'kube-scheduler',
-      labels+: { 'app.kubernetes.io/name': 'kube-scheduler' },
+      namespace: k8s._config.namespace,
+      labels: { 'app.kubernetes.io/name': 'kube-scheduler' },
     },
     spec: {
       jobLabel: 'app.kubernetes.io/name',
@@ -89,9 +77,10 @@ function(params) {
   serviceMonitorKubelet: {
     apiVersion: 'monitoring.coreos.com/v1',
     kind: 'ServiceMonitor',
-    metadata: k8s._metadata {
+    metadata: {
       name: 'kubelet',
-      labels+: { 'app.kubernetes.io/name': 'kubelet' },
+      namespace: k8s._config.namespace,
+      labels: { 'app.kubernetes.io/name': 'kubelet' },
     },
     spec: {
       jobLabel: 'app.kubernetes.io/name',
@@ -183,9 +172,10 @@ function(params) {
   serviceMonitorKubeControllerManager: {
     apiVersion: 'monitoring.coreos.com/v1',
     kind: 'ServiceMonitor',
-    metadata: k8s._metadata {
+    metadata: {
       name: 'kube-controller-manager',
-      labels+: { 'app.kubernetes.io/name': 'kube-controller-manager' },
+      namespace: k8s._config.namespace,
+      labels: { 'app.kubernetes.io/name': 'kube-controller-manager' },
     },
     spec: {
       jobLabel: 'app.kubernetes.io/name',
@@ -217,9 +207,10 @@ function(params) {
   serviceMonitorApiserver: {
     apiVersion: 'monitoring.coreos.com/v1',
     kind: 'ServiceMonitor',
-    metadata: k8s._metadata {
+    metadata: {
       name: 'kube-apiserver',
-      labels+: { 'app.kubernetes.io/name': 'apiserver' },
+      namespace: k8s._config.namespace,
+      labels: { 'app.kubernetes.io/name': 'apiserver' },
     },
     spec: {
       jobLabel: 'component',
@@ -270,9 +261,12 @@ function(params) {
   [if (defaults + params).kubeProxy then 'podMonitorKubeProxy']: {
     apiVersion: 'monitoring.coreos.com/v1',
     kind: 'PodMonitor',
-    metadata: k8s._metadata {
-      labels+: { 'k8s-app': 'kube-proxy' },
+    metadata: {
+      labels: {
+        'k8s-app': 'kube-proxy',
+      },
       name: 'kube-proxy',
+      namespace: k8s._config.namespace,
     },
     spec: {
       jobLabel: 'k8s-app',
@@ -306,9 +300,10 @@ function(params) {
   serviceMonitorCoreDNS: {
     apiVersion: 'monitoring.coreos.com/v1',
     kind: 'ServiceMonitor',
-    metadata: k8s._metadata {
+    metadata: {
       name: 'coredns',
-      labels+: { 'app.kubernetes.io/name': 'coredns' },
+      namespace: k8s._config.namespace,
+      labels: { 'app.kubernetes.io/name': 'coredns' },
     },
     spec: {
       jobLabel: 'app.kubernetes.io/name',
@@ -318,22 +313,11 @@ function(params) {
       namespaceSelector: {
         matchNames: ['kube-system'],
       },
-      endpoints: [
-        {
-          port: 'metrics',
-          interval: '15s',
-          bearerTokenFile: '/var/run/secrets/kubernetes.io/serviceaccount/token',
-          metricRelabelings: [
-            // Drop deprecated metrics
-            // TODO (pgough) - consolidate how we drop metrics across the project
-            {
-              sourceLabels: ['__name__'],
-              regex: 'coredns_cache_misses_total',
-              action: 'drop',
-            },
-          ],
-        },
-      ],
+      endpoints: [{
+        port: 'metrics',
+        interval: '15s',
+        bearerTokenFile: '/var/run/secrets/kubernetes.io/serviceaccount/token',
+      }],
     },
   },
 

@@ -37,7 +37,7 @@
       kind: 'ServiceMonitor',
       metadata: {
         name: 'aws-node',
-        namespace: $.values.kubernetesControlPlane.namespace,
+        namespace: $.values.common.namespace,
         labels: {
           'app.kubernetes.io/name': 'aws-node',
         },

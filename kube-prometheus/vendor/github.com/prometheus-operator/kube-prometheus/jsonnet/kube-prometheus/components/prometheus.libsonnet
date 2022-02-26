@@ -1,25 +1,20 @@
 local defaults = {
   local defaults = self,
-  // Convention: Top-level fields related to CRDs are public, other fields are hidden
-  // If there is no CRD for the component, everything is hidden in defaults.
-  name:: error 'must provide name',
-  namespace:: error 'must provide namespace',
+  namespace: error 'must provide namespace',
   version: error 'must provide version',
   image: error 'must provide image',
   resources: {
     requests: { memory: '400Mi' },
   },
-  //TODO(paulfantom): remove alertmanagerName after release-0.10 and convert to plain 'alerting' object.
-  alertmanagerName:: '',
-  alerting: {},
-  namespaces:: ['default', 'kube-system', defaults.namespace],
+
+  name: error 'must provide name',
+  alertmanagerName: error 'must provide alertmanagerName',
+  namespaces: ['default', 'kube-system', defaults.namespace],
   replicas: 2,
   externalLabels: {},
   enableFeatures: [],
-  ruleSelector: {},
   commonLabels:: {
     'app.kubernetes.io/name': 'prometheus',
-    'app.kubernetes.io/instance': defaults.name,
     'app.kubernetes.io/version': defaults.version,
     'app.kubernetes.io/component': 'prometheus',
     'app.kubernetes.io/part-of': 'kube-prometheus',
@@ -28,28 +23,18 @@ local defaults = {
     [labelName]: defaults.commonLabels[labelName]
     for labelName in std.objectFields(defaults.commonLabels)
     if !std.setMember(labelName, ['app.kubernetes.io/version'])
-  },
-  mixin:: {
+  } + { prometheus: defaults.name },
+  ruleSelector: {},
+  mixin: {
     ruleLabels: {},
     _config: {
       prometheusSelector: 'job="prometheus-' + defaults.name + '",namespace="' + defaults.namespace + '"',
       prometheusName: '{{$labels.namespace}}/{{$labels.pod}}',
-      // TODO: remove `thanosSelector` after 0.10.0 release.
-      thanosSelector: '',
-      thanos: {
-        targetGroups: {
-          namespace: defaults.namespace,
-        },
-        sidecar: {
-          selector: 'job="thanos-sidecar"',
-          thanosPrometheusCommonDimensions: 'namespace, pod',
-        },
-      },
+      thanosSelector: 'job="thanos-sidecar"',
       runbookURLPattern: 'https://runbooks.prometheus-operator.dev/runbooks/prometheus/%s',
     },
   },
   thanos: null,
-  reloaderPort:: 8080,
 };
 
 
@@ -59,11 +44,6 @@ function(params) {
   // Safety check
   assert std.isObject(p._config.resources),
   assert std.isObject(p._config.mixin._config),
-  _metadata:: {
-    name: 'prometheus-' + p._config.name,
-    namespace: p._config.namespace,
-    labels: p._config.commonLabels,
-  },
 
   mixin::
     (import 'github.com/prometheus/prometheus/documentation/prometheus-mixin/mixin.libsonnet') +
@@ -75,17 +55,20 @@ function(params) {
     (import 'github.com/thanos-io/thanos/mixin/alerts/sidecar.libsonnet') +
     (import 'github.com/kubernetes-monitoring/kubernetes-mixin/lib/add-runbook-links.libsonnet') + {
       _config+:: p._config.mixin._config,
-      targetGroups+: p._config.mixin._config.thanos.targetGroups,
-      // TODO: remove `_config.thanosSelector` after 0.10.0 release.
-      sidecar+: { selector: p._config.mixin._config.thanosSelector } + p._config.mixin._config.thanos.sidecar,
+      targetGroups: {},
+      sidecar: {
+        selector: p._config.mixin._config.thanosSelector,
+        dimensions: std.join(', ', ['job', 'instance']),
+      },
     },
 
   prometheusRule: {
     apiVersion: 'monitoring.coreos.com/v1',
     kind: 'PrometheusRule',
-    metadata: p._metadata {
-      labels+: p._config.mixin.ruleLabels,
-      name: p._metadata.name + '-prometheus-rules',
+    metadata: {
+      labels: p._config.commonLabels + p._config.mixin.ruleLabels,
+      name: 'prometheus-' + p._config.name + '-prometheus-rules',
+      namespace: p._config.namespace,
     },
     spec: {
       local r = if std.objectHasAll(p.mixin, 'prometheusRules') then p.mixin.prometheusRules.groups else [],
@@ -97,24 +80,31 @@ function(params) {
   serviceAccount: {
     apiVersion: 'v1',
     kind: 'ServiceAccount',
-    metadata: p._metadata,
+    metadata: {
+      name: 'prometheus-' + p._config.name,
+      namespace: p._config.namespace,
+      labels: p._config.commonLabels,
+    },
   },
 
   service: {
     apiVersion: 'v1',
     kind: 'Service',
-    metadata: p._metadata,
+    metadata: {
+      name: 'prometheus-' + p._config.name,
+      namespace: p._config.namespace,
+      labels: { prometheus: p._config.name } + p._config.commonLabels,
+    },
     spec: {
       ports: [
                { name: 'web', targetPort: 'web', port: 9090 },
-               { name: 'reloader-web', port: p._config.reloaderPort, targetPort: 'reloader-web' },
              ] +
              (
                if p._config.thanos != null then
                  [{ name: 'grpc', port: 10901, targetPort: 10901 }]
                else []
              ),
-      selector: p._config.selectorLabels,
+      selector: { app: 'prometheus' } + p._config.selectorLabels,
       sessionAffinity: 'ClientIP',
     },
   },
@@ -123,17 +113,19 @@ function(params) {
     local newSpecificRoleBinding(namespace) = {
       apiVersion: 'rbac.authorization.k8s.io/v1',
       kind: 'RoleBinding',
-      metadata: p._metadata {
+      metadata: {
+        name: 'prometheus-' + p._config.name,
         namespace: namespace,
+        labels: p._config.commonLabels,
       },
       roleRef: {
         apiGroup: 'rbac.authorization.k8s.io',
         kind: 'Role',
-        name: p._metadata.name,
+        name: 'prometheus-' + p._config.name,
       },
       subjects: [{
         kind: 'ServiceAccount',
-        name: p.serviceAccount.metadata.name,
+        name: 'prometheus-' + p._config.name,
         namespace: p._config.namespace,
       }],
     };
@@ -146,7 +138,10 @@ function(params) {
   clusterRole: {
     apiVersion: 'rbac.authorization.k8s.io/v1',
     kind: 'ClusterRole',
-    metadata: p._metadata,
+    metadata: {
+      name: 'prometheus-' + p._config.name,
+      labels: p._config.commonLabels,
+    },
     rules: [
       {
         apiGroups: [''],
@@ -163,8 +158,10 @@ function(params) {
   roleConfig: {
     apiVersion: 'rbac.authorization.k8s.io/v1',
     kind: 'Role',
-    metadata: p._metadata {
-      name: p._metadata.name + '-config',
+    metadata: {
+      name: 'prometheus-' + p._config.name + '-config',
+      namespace: p._config.namespace,
+      labels: p._config.commonLabels,
     },
     rules: [{
       apiGroups: [''],
@@ -176,17 +173,19 @@ function(params) {
   roleBindingConfig: {
     apiVersion: 'rbac.authorization.k8s.io/v1',
     kind: 'RoleBinding',
-    metadata: p._metadata {
-      name: p._metadata.name + '-config',
+    metadata: {
+      name: 'prometheus-' + p._config.name + '-config',
+      namespace: p._config.namespace,
+      labels: p._config.commonLabels,
     },
     roleRef: {
       apiGroup: 'rbac.authorization.k8s.io',
       kind: 'Role',
-      name: p._metadata.name + '-config',
+      name: 'prometheus-' + p._config.name + '-config',
     },
     subjects: [{
       kind: 'ServiceAccount',
-      name: p._metadata.name,
+      name: 'prometheus-' + p._config.name,
       namespace: p._config.namespace,
     }],
   },
@@ -194,15 +193,18 @@ function(params) {
   clusterRoleBinding: {
     apiVersion: 'rbac.authorization.k8s.io/v1',
     kind: 'ClusterRoleBinding',
-    metadata: p._metadata,
+    metadata: {
+      name: 'prometheus-' + p._config.name,
+      labels: p._config.commonLabels,
+    },
     roleRef: {
       apiGroup: 'rbac.authorization.k8s.io',
       kind: 'ClusterRole',
-      name: p._metadata.name,
+      name: 'prometheus-' + p._config.name,
     },
     subjects: [{
       kind: 'ServiceAccount',
-      name: p._metadata.name,
+      name: 'prometheus-' + p._config.name,
       namespace: p._config.namespace,
     }],
   },
@@ -211,8 +213,10 @@ function(params) {
     local newSpecificRole(namespace) = {
       apiVersion: 'rbac.authorization.k8s.io/v1',
       kind: 'Role',
-      metadata: p._metadata {
+      metadata: {
+        name: 'prometheus-' + p._config.name,
         namespace: namespace,
+        labels: p._config.commonLabels,
       },
       rules: [
         {
@@ -239,13 +243,19 @@ function(params) {
     },
 
   [if (defaults + params).replicas > 1 then 'podDisruptionBudget']: {
-    apiVersion: 'policy/v1',
+    apiVersion: 'policy/v1beta1',
     kind: 'PodDisruptionBudget',
-    metadata: p._metadata,
+    metadata: {
+      name: 'prometheus-' + p._config.name,
+      namespace: p._config.namespace,
+      labels: p._config.commonLabels,
+    },
     spec: {
       minAvailable: 1,
       selector: {
-        matchLabels: p._config.selectorLabels,
+        matchLabels: {
+          prometheus: p._config.name,
+        } + p._config.selectorLabels,
       },
     },
   },
@@ -253,19 +263,21 @@ function(params) {
   prometheus: {
     apiVersion: 'monitoring.coreos.com/v1',
     kind: 'Prometheus',
-    metadata: p._metadata {
+    metadata: {
       name: p._config.name,
+      namespace: p._config.namespace,
+      labels: { prometheus: p._config.name } + p._config.commonLabels,
     },
     spec: {
       replicas: p._config.replicas,
       version: p._config.version,
       image: p._config.image,
       podMetadata: {
-        labels: p.prometheus.metadata.labels,
+        labels: p._config.commonLabels,
       },
       externalLabels: p._config.externalLabels,
       enableFeatures: p._config.enableFeatures,
-      serviceAccountName: p.serviceAccount.metadata.name,
+      serviceAccountName: 'prometheus-' + p._config.name,
       podMonitorSelector: {},
       podMonitorNamespaceSelector: {},
       probeSelector: {},
@@ -276,7 +288,7 @@ function(params) {
       serviceMonitorNamespaceSelector: {},
       nodeSelector: { 'kubernetes.io/os': 'linux' },
       resources: p._config.resources,
-      alerting: if p._config.alerting != {} then p._config.alerting else {
+      alerting: {
         alertmanagers: [{
           namespace: p._config.namespace,
           name: 'alertmanager-' + p._config.alertmanagerName,
@@ -296,15 +308,19 @@ function(params) {
   serviceMonitor: {
     apiVersion: 'monitoring.coreos.com/v1',
     kind: 'ServiceMonitor',
-    metadata: p._metadata,
+    metadata: {
+      name: 'prometheus-' + p._config.name,
+      namespace: p._config.namespace,
+      labels: p._config.commonLabels,
+    },
     spec: {
       selector: {
         matchLabels: p._config.selectorLabels,
       },
-      endpoints: [
-        { port: 'web', interval: '30s' },
-        { port: 'reloader-web', interval: '30s' },
-      ],
+      endpoints: [{
+        port: 'web',
+        interval: '30s',
+      }],
     },
   },
 
@@ -312,9 +328,10 @@ function(params) {
   [if std.objectHas(params, 'thanos') && params.thanos != null then 'prometheusRuleThanosSidecar']: {
     apiVersion: 'monitoring.coreos.com/v1',
     kind: 'PrometheusRule',
-    metadata: p._metadata {
-      labels+: p._config.mixin.ruleLabels,
-      name: p._metadata.name + '-thanos-sidecar-rules',
+    metadata: {
+      labels: p._config.commonLabels + p._config.mixin.ruleLabels,
+      name: 'prometheus-' + p._config.name + '-thanos-sidecar-rules',
+      namespace: p._config.namespace,
     },
     spec: {
       local r = if std.objectHasAll(p.mixinThanos, 'prometheusRules') then p.mixinThanos.prometheusRules.groups else [],
@@ -327,9 +344,11 @@ function(params) {
   [if std.objectHas(params, 'thanos') && params.thanos != null then 'serviceThanosSidecar']: {
     apiVersion: 'v1',
     kind: 'Service',
-    metadata+: p._metadata {
-      name: p._metadata.name + '-thanos-sidecar',
-      labels+: {
+    metadata+: {
+      name: 'prometheus-' + p._config.name + '-thanos-sidecar',
+      namespace: p._config.namespace,
+      labels+: p._config.commonLabels {
+        prometheus: p._config.name,
         'app.kubernetes.io/component': 'thanos-sidecar',
       },
     },
@@ -339,6 +358,7 @@ function(params) {
         { name: 'http', port: 10902, targetPort: 10902 },
       ],
       selector: p._config.selectorLabels {
+        prometheus: p._config.name,
         'app.kubernetes.io/component': 'prometheus',
       },
       clusterIP: 'None',
@@ -349,9 +369,11 @@ function(params) {
   [if std.objectHas(params, 'thanos') && params.thanos != null then 'serviceMonitorThanosSidecar']: {
     apiVersion: 'monitoring.coreos.com/v1',
     kind: 'ServiceMonitor',
-    metadata+: p._metadata {
+    metadata+: {
       name: 'thanos-sidecar',
-      labels+: {
+      namespace: p._config.namespace,
+      labels: p._config.commonLabels {
+        prometheus: p._config.name,
         'app.kubernetes.io/component': 'thanos-sidecar',
       },
     },
@@ -359,6 +381,7 @@ function(params) {
       jobLabel: 'app.kubernetes.io/component',
       selector: {
         matchLabels: {
+          prometheus: p._config.name,
           'app.kubernetes.io/component': 'thanos-sidecar',
         },
       },

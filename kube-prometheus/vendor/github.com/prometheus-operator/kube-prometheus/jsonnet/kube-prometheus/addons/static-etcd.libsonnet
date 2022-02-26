@@ -84,7 +84,7 @@
       type: 'Opaque',
       metadata: {
         name: 'kube-etcd-client-certs',
-        namespace: $.values.prometheus.namespace,
+        namespace: $.values.common.namespace,
       },
       data: {
         'etcd-client-ca.crt': std.base64($.values.etcd.clientCA),

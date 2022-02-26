@@ -1,5 +1,5 @@
 # Prometheus Monitoring Mixin for Kubernetes
-[![ci](https://github.com/kubernetes-monitoring/kubernetes-mixin/actions/workflows/ci.yaml/badge.svg)](https://github.com/kubernetes-monitoring/kubernetes-mixin/actions/workflows/ci.yaml)
+[![CircleCI](https://circleci.com/gh/kubernetes-monitoring/kubernetes-mixin/tree/master.svg?style=shield)](https://circleci.com/gh/kubernetes-monitoring/kubernetes-mixin)
 
 > NOTE: This project is *pre-release* stage. Flags, configuration, behaviour and design may change significantly in following releases.
 
@@ -18,7 +18,6 @@ A set of Grafana dashboards and Prometheus alerts for Kubernetes.
 | release-0.7  | v1.19+             | v2.11.0+  | v1.x  |
 | release-0.8  | v1.20+             | v2.11.0+  | v2.0+ |
 | release-0.9  | v1.20+             | v2.11.0+  | v2.0+ |
-| release-0.10 | v1.20+             | v2.11.0+  | v2.0+ |
 | master       | v1.20+             | v2.11.0+  | v2.0+ |
 
 In Kubernetes 1.14 there was a major [metrics overhaul](https://github.com/kubernetes/enhancements/issues/1206) implemented.
@@ -91,8 +90,10 @@ Steps to configure wmi_exporter
 
 ## Running the tests
 
-```sh
-make test
+Build the mixins, run the tests:
+
+```
+$ docker run -v $(pwd):/tmp --entrypoint "/bin/promtool" prom/prometheus:latest test rules /tmp/tests.yaml
 ```
 
 ## Using with prometheus-ksonnet

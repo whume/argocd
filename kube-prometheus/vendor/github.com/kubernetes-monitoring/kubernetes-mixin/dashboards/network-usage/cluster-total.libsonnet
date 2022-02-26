@@ -6,6 +6,7 @@ local template = grafana.template;
 local graphPanel = grafana.graphPanel;
 local tablePanel = grafana.tablePanel;
 local annotation = grafana.annotation;
+local singlestat = grafana.singlestat;
 
 {
   grafanaDashboards+:: {
@@ -361,15 +362,15 @@ local annotation = grafana.annotation;
         {
           current: {
             text: 'default',
-            value: $._config.datasourceName,
+            value: 'default',
           },
           hide: 0,
-          label: 'Data Source',
+          label: null,
           name: 'datasource',
           options: [],
           query: 'prometheus',
           refresh: 1,
-          regex: $._config.datasourceFilterRegex,
+          regex: '',
           type: 'datasource',
         },
       )

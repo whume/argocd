@@ -13,7 +13,7 @@ local datasourceTemplate = {
     value: 'Prometheus',
   },
   hide: 0,
-  label: 'Data Source',
+  label: null,
   name: 'datasource',
   options: [],
   query: 'prometheus',

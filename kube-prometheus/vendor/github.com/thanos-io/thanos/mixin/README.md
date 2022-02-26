@@ -1,6 +1,7 @@
 # thanos-mixin
 
-> Note that everything is experimental and may change significantly at any time. Also it still has missing alert and dashboard definitions for certain components, e.g. rule and sidecar. Please feel free to contribute.
+> Note that everything is experimental and may change significantly at any time.
+> Also it still has missing alert and dashboard definitions for certain components, e.g. rule and sidecar. Please feel free to contribute.
 
 This directory contains extensible and customizable monitoring definitons for Thanos. [Grafana](http://grafana.com/) dashboards, and [Prometheus rules](https://prometheus.io/docs/prometheus/latest/configuration/recording_rules/) combined with documentation and scripts to provide easy monitoring experience for Thanos.
 
@@ -39,7 +40,6 @@ go get github.com/jsonnet-bundler/jsonnet-bundler/cmd/jb
 ## Use as a library
 
 To use the `thanos-mixin` as a dependency, simply use the `jsonnet-bundler` install functionality:
-
 ```shell
 $ mkdir thanos-mixin; cd thanos-mixin
 $ jb init  # Creates the initial/empty `jsonnetfile.json`
@@ -48,16 +48,16 @@ $ jb install github.com/thanos-io/thanos/mixin@main # Creates `vendor/` & `jsonn
 ```
 
 To update the `thanos-mixin` as a dependency, simply use the `jsonnet-bundler` update functionality:
-
 ```shell
 $ jb update
 ```
 
 #### Configure
 
-This project is intended to be used as a library. You can extend and customize dashboards and alerting rules by creating for own generators, such as the generators ([alerts.jsonnet](alerts.jsonnet) and [dashboards.jsonnet](dashboards.jsonnet)) that are use to create [examples](../examples). Default parameters are collected in [config.libsonnet](config.libsonnet), feel free to modify and generate your own definitions.
+This project is intended to be used as a library. You can extend and customize dashboards and alerting rules by creating for own generators, such as the generators ([alerts.jsonnet](alerts.jsonnet) and [dashboards.jsonnet](dashboards.jsonnet)) that are use to create [examples](/examples). Default parameters are collected in [config.libsonnet](config.libsonnet), feel free to modify and generate your own definitions.
 
-```libsonnet mdox-exec="cat mixin/config.libsonnet"
+[embedmd]:# (config.libsonnet)
+```libsonnet
 {
   local thanos = self,
   // TargetGroups is a way to help mixin users to add high level target grouping to their alerts and dashboards.
@@ -130,7 +130,6 @@ This project is intended to be used as a library. You can extend and customize d
 ```
 
 You can format your code using:
-
 ```shell
 $ make jsonnet-format
 ```
@@ -148,7 +147,6 @@ Although all the required dependencies are handled by `Makefile`, keep in mind t
 `gojsontoyaml` is used to convert generated `json` definitions to `yaml`.
 
 To install:
-
 ```shell
 go get github.com/brancz/gojsontoyaml
 ```
@@ -156,7 +154,6 @@ go get github.com/brancz/gojsontoyaml
 ### Generate
 
 To generate examples after modifying, make sure `jsonnet` dependencies are installed.
-
 ```shell
 $ make jsonnet-vendor
 ```
@@ -179,7 +176,7 @@ You validate your structural correctness of your Prometheus [alerting rules](htt
 $ make example-rules-lint
 ```
 
-Check out [test.yaml](../examples/alerts/tests.yaml) to add/modify tests for the mixin. To learn more about how to write test for Prometheus, check out [official documentation](https://www.prometheus.io/docs/prometheus/latest/configuration/unit_testing_rules/).
+Check out [test.yaml](/examples/alerts/tests.yaml) to add/modify tests for the mixin. To learn more about how to write test for Prometheus, check out [official documentation](https://www.prometheus.io/docs/prometheus/latest/configuration/unit_testing_rules/).
 
 You test alerts with:
 

@@ -257,15 +257,15 @@ local singlestat = grafana.singlestat;
         {
           current: {
             text: 'default',
-            value: $._config.datasourceName,
+            value: 'default',
           },
           hide: 0,
-          label: 'Data Source',
+          label: null,
           name: 'datasource',
           options: [],
           query: 'prometheus',
           refresh: 1,
-          regex: $._config.datasourceFilterRegex,
+          regex: '',
           type: 'datasource',
         },
       )

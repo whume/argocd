@@ -1,8 +1,12 @@
 local grafana = import 'github.com/grafana/grafonnet-lib/grafonnet/grafana.libsonnet';
 local dashboard = grafana.dashboard;
+local row = grafana.row;
 local prometheus = grafana.prometheus;
 local template = grafana.template;
 local graphPanel = grafana.graphPanel;
+local promgrafonnet = import '../lib/promgrafonnet/promgrafonnet.libsonnet';
+local numbersinglestat = promgrafonnet.numbersinglestat;
+local gauge = promgrafonnet.gauge;
 local g = import 'github.com/grafana/jsonnet-libs/grafana-builder/grafana.libsonnet';
 
 {
@@ -31,7 +35,7 @@ local g = import 'github.com/grafana/jsonnet-libs/grafana-builder/grafana.libson
           options: [],
           query: 'prometheus',
           refresh: 1,
-          regex: $._config.datasourceFilterRegex,
+          regex: '',
           type: 'datasource',
         },
       )
@@ -140,7 +144,7 @@ local g = import 'github.com/grafana/jsonnet-libs/grafana-builder/grafana.libson
         {
           current: {
             text: 'default',
-            value: $._config.datasourceName,
+            value: 'default',
           },
           hide: 0,
           label: null,
@@ -148,7 +152,7 @@ local g = import 'github.com/grafana/jsonnet-libs/grafana-builder/grafana.libson
           options: [],
           query: 'prometheus',
           refresh: 1,
-          regex: $._config.datasourceFilterRegex,
+          regex: '',
           type: 'datasource',
         },
       )
@@ -241,7 +245,7 @@ local g = import 'github.com/grafana/jsonnet-libs/grafana-builder/grafana.libson
           options: [],
           query: 'prometheus',
           refresh: 1,
-          regex: $._config.datasourceFilterRegex,
+          regex: '',
           type: 'datasource',
         },
       )
@@ -362,7 +366,7 @@ local g = import 'github.com/grafana/jsonnet-libs/grafana-builder/grafana.libson
           options: [],
           query: 'prometheus',
           refresh: 1,
-          regex: $._config.datasourceFilterRegex,
+          regex: '',
           type: 'datasource',
         },
       )
@@ -447,7 +451,7 @@ local g = import 'github.com/grafana/jsonnet-libs/grafana-builder/grafana.libson
           options: [],
           query: 'prometheus',
           refresh: 1,
-          regex: $._config.datasourceFilterRegex,
+          regex: '',
           type: 'datasource',
         },
       )
@@ -470,7 +474,7 @@ local g = import 'github.com/grafana/jsonnet-libs/grafana-builder/grafana.libson
         )
         .addPanel(
           g.panel('CPU Usage Per Core') +
-          g.queryPanel('sum by (core) (irate(windows_cpu_time_total{%(wmiExporterSelector)s, mode!="idle", instance="$instance"}[%(grafanaIntervalVar)s]))' % $._config, '{{core}}') +
+          g.queryPanel('sum by (core) (irate(windows_cpu_time_total{%(wmiExporterSelector)s, mode!="idle", instance="$instance"}[5m]))' % $._config, '{{core}}') +
           { yaxes: g.yaxes('percentunit') },
         )
       )
@@ -557,6 +561,6 @@ local g = import 'github.com/grafana/jsonnet-libs/grafana-builder/grafana.libson
           ) +
           { yaxes: g.yaxes('percentunit') },
         ),
-      ),
+      ) + { refresh: $._config.grafanaK8s.refresh },
   },
 }
