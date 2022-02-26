@@ -24,16 +24,6 @@
     {
       "source": {
         "git": {
-          "remote": "https://github.com/grafana/grafana.git",
-          "subdir": "grafana-mixin"
-        }
-      },
-      "version": "970dee419911e8794660b4f957b4b9cddf85f653",
-      "sum": "MkjR7zCgq6MUZgjDzop574tFKoTX2OBr7DTwm1K+Ofs="
-    },
-    {
-      "source": {
-        "git": {
           "remote": "https://github.com/grafana/grafonnet-lib.git",
           "subdir": "grafonnet"
         }
@@ -98,8 +88,8 @@
           "subdir": "jsonnet/kube-prometheus"
         }
       },
-      "version": "15664a1983426c76498cbc2b86ebf7bffbf26945",
-      "sum": "ClAg/nR4aHbx9865gr7PE34fZ25ESoeB62fPVYfGB6g="
+      "version": "5b9aa36169af47a1fb938cc7984d4ee59588fe2a",
+      "sum": "/vWBtOTq4/zPmoSKHwh/3jYUAzWeNNyq4rYmErEb9wU="
     },
     {
       "source": {

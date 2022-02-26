@@ -115,7 +115,6 @@ function(params) {
     apiVersion: 'v1',
     kind: 'ServiceAccount',
     metadata: bb._metadata,
-    automountServiceAccountToken: false,
   },
 
   clusterRole: {
@@ -170,13 +169,9 @@ function(params) {
       securityContext: if bb._config.privileged then {
         runAsNonRoot: false,
         capabilities: { drop: ['ALL'], add: ['NET_RAW'] },
-        readOnlyRootFilesystem: true,
       } else {
         runAsNonRoot: true,
         runAsUser: 65534,
-        allowPrivilegeEscalation: false,
-        readOnlyRootFilesystem: true,
-        capabilities: { drop: ['ALL'] },
       },
       volumeMounts: [{
         mountPath: '/etc/blackbox_exporter/',
@@ -193,13 +188,7 @@ function(params) {
         '--volume-dir=/etc/blackbox_exporter/',
       ],
       resources: bb._config.resources,
-      securityContext: {
-        runAsNonRoot: true,
-        runAsUser: 65534,
-        allowPrivilegeEscalation: false,
-        readOnlyRootFilesystem: true,
-        capabilities: { drop: ['ALL'] },
-      },
+      securityContext: { runAsNonRoot: true, runAsUser: 65534 },
       terminationMessagePath: '/dev/termination-log',
       terminationMessagePolicy: 'FallbackToLogsOnError',
       volumeMounts: [{
@@ -239,7 +228,6 @@ function(params) {
           spec: {
             containers: [blackboxExporter, reloader, kubeRbacProxy],
             nodeSelector: { 'kubernetes.io/os': 'linux' },
-            automountServiceAccountToken: true,
             serviceAccountName: 'blackbox-exporter',
             volumes: [{
               name: 'config',

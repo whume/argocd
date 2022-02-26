@@ -8,8 +8,8 @@
           "subdir": "jsonnet/kube-prometheus"
         }
       },
-      "version": "main"
-    }    
+      "version": "release-0.10"
+    }
   ],
   "legacyImports": true
 }
