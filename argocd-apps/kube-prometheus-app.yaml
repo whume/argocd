@@ -11,7 +11,7 @@ spec:
   project: monitoring
   source:
     directory:
-      include: "**./*.onnet"
+      include: "**./*.*onnet"
       jsonnet:
         libs:
           - vendor
