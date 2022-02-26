@@ -49,7 +49,7 @@
               severity: 'warning',
             },
             annotations: {
-              description: 'Cluster has overcommitted memory resource requests for Pods by {{ $value }} bytes and cannot tolerate node failure.',
+              description: 'Cluster has overcommitted memory resource requests for Pods by {{ $value | humanize }} bytes and cannot tolerate node failure.',
               summary: 'Cluster has overcommitted memory resource requests.',
             },
             'for': '10m',
@@ -57,9 +57,9 @@
           {
             alert: 'KubeCPUQuotaOvercommit',
             expr: |||
-              sum(kube_resourcequota{%(prefixedNamespaceSelector)s%(kubeStateMetricsSelector)s, type="hard", resource="cpu"})
+              sum(min without(resource) (kube_resourcequota{%(prefixedNamespaceSelector)s%(kubeStateMetricsSelector)s, type="hard", resource=~"(cpu|requests.cpu)"}))
                 /
-              sum(kube_node_status_allocatable{resource="cpu"})
+              sum(kube_node_status_allocatable{resource="cpu", %(kubeStateMetricsSelector)s})
                 > %(namespaceOvercommitFactor)s
             ||| % $._config,
             labels: {
@@ -74,9 +74,9 @@
           {
             alert: 'KubeMemoryQuotaOvercommit',
             expr: |||
-              sum(kube_resourcequota{%(prefixedNamespaceSelector)s%(kubeStateMetricsSelector)s, type="hard", resource="memory"})
+              sum(min without(resource) (kube_resourcequota{%(prefixedNamespaceSelector)s%(kubeStateMetricsSelector)s, type="hard", resource=~"(memory|requests.memory)"}))
                 /
-              sum(kube_node_status_allocatable{resource="memory",%(kubeStateMetricsSelector)s})
+              sum(kube_node_status_allocatable{resource="memory", %(kubeStateMetricsSelector)s})
                 > %(namespaceOvercommitFactor)s
             ||| % $._config,
             labels: {

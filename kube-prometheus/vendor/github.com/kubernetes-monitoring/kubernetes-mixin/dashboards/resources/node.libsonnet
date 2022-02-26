@@ -8,7 +8,7 @@ local template = grafana.template;
       template.new(
         name='cluster',
         datasource='$datasource',
-        query='label_values(kube_pod_info, %s)' % $._config.clusterLabel,
+        query='label_values(up{%(kubeStateMetricsSelector)s}, %(clusterLabel)s)' % $._config,
         current='',
         hide=if $._config.showMultiCluster then '' else '2',
         refresh=2,
@@ -20,7 +20,7 @@ local template = grafana.template;
       template.new(
         name='node',
         datasource='$datasource',
-        query='label_values(kube_pod_info{%(clusterLabel)s="$cluster"}, node)' % $._config.clusterLabel,
+        query='label_values(kube_node_info{%(clusterLabel)s="$cluster"}, node)' % $._config,
         current='',
         hide='',
         refresh=2,
@@ -44,8 +44,29 @@ local template = grafana.template;
         g.row('CPU Usage')
         .addPanel(
           g.panel('CPU Usage') +
-          g.queryPanel('sum(node_namespace_pod_container:container_cpu_usage_seconds_total:sum_irate{%(clusterLabel)s="$cluster", node=~"$node"}) by (pod)' % $._config, '{{pod}}') +
-          g.stack,
+          g.queryPanel([
+            'sum(kube_node_status_capacity{%(clusterLabel)s="$cluster", node=~"$node", resource="cpu"})' % $._config,
+            'sum(node_namespace_pod_container:container_cpu_usage_seconds_total:sum_irate{%(clusterLabel)s="$cluster", node=~"$node"}) by (pod)' % $._config,
+          ], [
+            'max capacity',
+            '{{pod}}',
+          ]) +
+          g.stack +
+          {
+            seriesOverrides: [
+              {
+                alias: 'max capacity',
+                color: '#F2495C',
+                fill: 0,
+                hideTooltip: true,
+                legend: true,
+                linewidth: 2,
+                stack: false,
+                hiddenSeries: true,
+                dashes: true,
+              },
+            ],
+          },
         )
       )
       .addRow(
@@ -72,9 +93,30 @@ local template = grafana.template;
         .addPanel(
           g.panel('Memory Usage (w/o cache)') +
           // Like above, without page cache
-          g.queryPanel('sum(node_namespace_pod_container:container_memory_working_set_bytes{%(clusterLabel)s="$cluster", node=~"$node", container!=""}) by (pod)' % $._config, '{{pod}}') +
+          g.queryPanel([
+            'sum(kube_node_status_capacity{%(clusterLabel)s="$cluster", node=~"$node", resource="memory"})' % $._config,
+            'sum(node_namespace_pod_container:container_memory_working_set_bytes{%(clusterLabel)s="$cluster", node=~"$node", container!=""}) by (pod)' % $._config,
+          ], [
+            'max capacity',
+            '{{pod}}',
+          ]) +
           g.stack +
-          { yaxes: g.yaxes('bytes') },
+          { yaxes: g.yaxes('bytes') } +
+          {
+            seriesOverrides: [
+              {
+                alias: 'max capacity',
+                color: '#F2495C',
+                fill: 0,
+                hideTooltip: true,
+                legend: true,
+                linewidth: 2,
+                stack: false,
+                hiddenSeries: true,
+                dashes: true,
+              },
+            ],
+          },
         )
       )
       .addRow(
@@ -101,6 +143,10 @@ local template = grafana.template;
             'Value #H': { alias: 'Memory Usage (Swap)', unit: 'bytes' },
           })
         )
-      ) + { tags: $._config.grafanaK8s.dashboardTags, refresh: $._config.grafanaK8s.refresh, templating+: { list+: [clusterTemplate, nodeTemplate] } },
+      ) + {
+        templating+: {
+          list+: [clusterTemplate, nodeTemplate],
+        },
+      },
   },
 }

@@ -5,7 +5,6 @@ local prometheus = grafana.prometheus;
 local template = grafana.template;
 local graphPanel = grafana.graphPanel;
 local promgrafonnet = import '../lib/promgrafonnet/promgrafonnet.libsonnet';
-local numbersinglestat = promgrafonnet.numbersinglestat;
 local gauge = promgrafonnet.gauge;
 
 {
@@ -116,15 +115,15 @@ local gauge = promgrafonnet.gauge;
         {
           current: {
             text: 'default',
-            value: 'default',
+            value: $._config.datasourceName,
           },
           hide: 0,
-          label: null,
+          label: 'Data Source',
           name: 'datasource',
           options: [],
           query: 'prometheus',
           refresh: 1,
-          regex: '',
+          regex: $._config.datasourceFilterRegex,
           type: 'datasource',
         },
       )
@@ -132,7 +131,7 @@ local gauge = promgrafonnet.gauge;
         template.new(
           'cluster',
           '$datasource',
-          'label_values(kubelet_volume_stats_capacity_bytes, %s)' % $._config.clusterLabel,
+          'label_values(kubelet_volume_stats_capacity_bytes{%(kubeletSelector)s}, %(clusterLabel)s)' % $._config,
           label='cluster',
           refresh='time',
           hide=if $._config.showMultiCluster then '' else 'variable',
@@ -168,6 +167,6 @@ local gauge = promgrafonnet.gauge;
         row.new()
         .addPanel(inodesGraph)
         .addPanel(inodeGauge)
-      ) + { refresh: $._config.grafanaK8s.refresh },
+      ),
   },
 }

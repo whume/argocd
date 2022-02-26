@@ -8,8 +8,17 @@
           "subdir": "jsonnet/kube-prometheus"
         }
       },
-      "version": "release-0.9"
+      "version": "release-0.10"
+    },
+    {
+      "source": {
+        "git": {
+          "remote": "https://github.com/prometheus-operator/prometheus-operator.git",
+          "subdir": "jsonnet/prometheus-operator"
+        }
+      },
+      "version": "main"
     }
   ],
-  "legacyImports": true
+  "legacyImports": false
 }
