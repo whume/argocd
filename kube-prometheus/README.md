@@ -1,6 +1,4 @@
-# argocd
-
-ArgoCD - Kube-Prometheus
+# ArgoCD - Kube-Prometheus
 
 ## Perquisites 
 
