@@ -11,6 +11,10 @@ spec:
   project: monitoring
   source:
     directory:
+      properties:
+        exclude:
+          - jsonnetfile.json
+          - jsonnetfile.lock.json 
       jsonnet:
         libs:
           - vendored
