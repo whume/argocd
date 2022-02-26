@@ -28,12 +28,9 @@ jb install github.com/prometheus-operator/kube-prometheus/jsonnet/kube-prometheu
 ```
 ### Add `argocd.argoproj.io/sync-options: Replace=true` annotation to `prometheus-operator-0prometheusCustomResourceDefinition.yaml` 
 
-[[/png/annotation.PNG]]
+[<img src="./images/annotation.PNG" />]
 
 [Example](https://github.com/whume/argocd/commit/d46272f57398eca3ca50aa252cd8def5af88702c?diff=unified)
-
-
-
 
 ## License
 [MIT](https://choosealicense.com/licenses/mit/)
