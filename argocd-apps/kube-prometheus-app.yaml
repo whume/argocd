@@ -11,7 +11,7 @@ spec:
   project: monitoring
   source:
     directory:
-      exclude: "kube-prometheus/**/*.json"
+      exclude: "kube-prometheus/**/*jsonn"
       jsonnet:
         libs:
           - vendor
