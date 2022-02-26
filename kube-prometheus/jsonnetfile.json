@@ -9,16 +9,7 @@
         }
       },
       "version": "release-0.10"
-    },
-    {
-      "source": {
-        "git": {
-          "remote": "https://github.com/prometheus-operator/prometheus-operator.git",
-          "subdir": "jsonnet/prometheus-operator"
-        }
-      },
-      "version": "main"
     }
   ],
-  "legacyImports": false
+  "legacyImports": true
 }
