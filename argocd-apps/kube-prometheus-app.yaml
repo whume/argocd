@@ -11,7 +11,7 @@ spec:
   project: monitoring
   source:
     directory:
-      exclude: "jsonnetfile.json"
+      exclude: "jsonnetfile.json,/vendor/github.com/brancz/kubernetes-grafana/grafana/jsonnetfile.json"
       jsonnet:
         libs:
           - vendor
