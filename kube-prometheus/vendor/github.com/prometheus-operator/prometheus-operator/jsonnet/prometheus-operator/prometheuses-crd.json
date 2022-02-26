@@ -3636,11 +3636,11 @@
                     "type": "object"
                   },
                   "overrideHonorLabels": {
-                    "description": "When true, Prometheus resolves label conflicts by renaming the labels in the scraped data to \"exported_<label value>\" for all targets created from service and pod monitors. Otherwise the HonorLabels field of the service or pod monitor applies.",
+                    "description": "OverrideHonorLabels if set to true overrides all user configured honor_labels. If HonorLabels is set in ServiceMonitor or PodMonitor to true, this overrides honor_labels to false.",
                     "type": "boolean"
                   },
                   "overrideHonorTimestamps": {
-                    "description": "When true, Prometheus ignores the timestamps for all the targets created from service and pod monitors. Otherwise the HonorTimestamps field of the service or pod monitor applies.",
+                    "description": "OverrideHonorTimestamps allows to globally enforce honoring timestamps in all scrape configs.",
                     "type": "boolean"
                   },
                   "paused": {
@@ -3902,9 +3902,9 @@
                     "type": "string"
                   },
                   "remoteRead": {
-                    "description": "remoteRead is the list of remote read configurations.",
+                    "description": "If specified, the remote_read spec. This is an experimental feature, it may change in any upcoming release in a breaking way.",
                     "items": {
-                      "description": "RemoteReadSpec defines the configuration for Prometheus to read back samples from a remote endpoint.",
+                      "description": "RemoteReadSpec defines the remote_read configuration for prometheus.",
                       "properties": {
                         "authorization": {
                           "description": "Authorization section for remote read",
@@ -4005,7 +4005,7 @@
                           "type": "object"
                         },
                         "name": {
-                          "description": "The name of the remote read queue, it must be unique if specified. The name is used in metrics and logging in order to differentiate read configurations.  Only valid in Prometheus versions 2.15.0 and newer.",
+                          "description": "The name of the remote read queue, must be unique if specified. The name is used in metrics and logging in order to differentiate read configurations.  Only valid in Prometheus versions 2.15.0 and newer.",
                           "type": "string"
                         },
                         "oauth2": {
@@ -4108,7 +4108,7 @@
                           "type": "object"
                         },
                         "proxyUrl": {
-                          "description": "Optional ProxyURL.",
+                          "description": "Optional ProxyURL",
                           "type": "string"
                         },
                         "readRecent": {
@@ -4270,7 +4270,7 @@
                           "type": "object"
                         },
                         "url": {
-                          "description": "The URL of the endpoint to query from.",
+                          "description": "The URL of the endpoint to send samples to.",
                           "type": "string"
                         }
                       },
@@ -4282,9 +4282,9 @@
                     "type": "array"
                   },
                   "remoteWrite": {
-                    "description": "remoteWrite is the list of remote write configurations.",
+                    "description": "If specified, the remote_write spec. This is an experimental feature, it may change in any upcoming release in a breaking way.",
                     "items": {
-                      "description": "RemoteWriteSpec defines the configuration to write samples from Prometheus to a remote endpoint.",
+                      "description": "RemoteWriteSpec defines the remote_write configuration for prometheus.",
                       "properties": {
                         "authorization": {
                           "description": "Authorization section for remote write",
@@ -4385,21 +4385,21 @@
                           "type": "object"
                         },
                         "metadataConfig": {
-                          "description": "MetadataConfig configures the sending of series metadata to the remote storage.",
+                          "description": "MetadataConfig configures the sending of series metadata to remote storage.",
                           "properties": {
                             "send": {
-                              "description": "Whether metric metadata is sent to the remote storage or not.",
+                              "description": "Whether metric metadata is sent to remote storage or not.",
                               "type": "boolean"
                             },
                             "sendInterval": {
-                              "description": "How frequently metric metadata is sent to the remote storage.",
+                              "description": "How frequently metric metadata is sent to remote storage.",
                               "type": "string"
                             }
                           },
                           "type": "object"
                         },
                         "name": {
-                          "description": "The name of the remote write queue, it must be unique if specified. The name is used in metrics and logging in order to differentiate queues. Only valid in Prometheus versions 2.15.0 and newer.",
+                          "description": "The name of the remote write queue, must be unique if specified. The name is used in metrics and logging in order to differentiate queues. Only valid in Prometheus versions 2.15.0 and newer.",
                           "type": "string"
                         },
                         "oauth2": {
@@ -4502,7 +4502,7 @@
                           "type": "object"
                         },
                         "proxyUrl": {
-                          "description": "Optional ProxyURL.",
+                          "description": "Optional ProxyURL",
                           "type": "string"
                         },
                         "queueConfig": {
@@ -4768,17 +4768,7 @@
                             "description": "RelabelConfig allows dynamic rewriting of the label set, being applied to samples before ingestion. It defines `<metric_relabel_configs>`-section of Prometheus configuration. More info: https://prometheus.io/docs/prometheus/latest/configuration/configuration/#metric_relabel_configs",
                             "properties": {
                               "action": {
-                                "default": "replace",
                                 "description": "Action to perform based on regex matching. Default is 'replace'",
-                                "enum": [
-                                  "replace",
-                                  "keep",
-                                  "drop",
-                                  "hashmod",
-                                  "labelmap",
-                                  "labeldrop",
-                                  "labelkeep"
-                                ],
                                 "type": "string"
                               },
                               "modulus": {
@@ -4801,8 +4791,6 @@
                               "sourceLabels": {
                                 "description": "The source labels select values from existing labels. Their content is concatenated using the configured separator and matched against the configured regular expression for the replace, keep, and drop actions.",
                                 "items": {
-                                  "description": "LabelName is a valid Prometheus label name which may only contain ASCII letters, numbers, as well as underscores.",
-                                  "pattern": "^[a-zA-Z_][a-zA-Z0-9_]*$",
                                   "type": "string"
                                 },
                                 "type": "array"
@@ -4872,7 +4860,7 @@
                     "type": "object"
                   },
                   "retention": {
-                    "description": "Time duration Prometheus shall retain data for. Default is '24h' if retentionSize is not set, and must match the regular expression `[0-9]+(ms|s|m|h|d|w|y)` (milliseconds seconds minutes hours days weeks years).",
+                    "description": "Time duration Prometheus shall retain data for. Default is '24h', and must match the regular expression `[0-9]+(ms|s|m|h|d|w|y)` (milliseconds seconds minutes hours days weeks years).",
                     "type": "string"
                   },
                   "retentionSize": {
