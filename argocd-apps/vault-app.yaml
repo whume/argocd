@@ -18,6 +18,8 @@ spec:
           value: "true"
         - name: "server.ingress.enabled"
           value: "true"
+        - name: "server.ingress.hosts[0].host"
+          value: "vault.squiddylabs.com"
         - name: "server.ingress.hosts[0].paths"
           value: "{/vault}"
         - name: "injector.enabled"
