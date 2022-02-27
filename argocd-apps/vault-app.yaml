@@ -1,0 +1,29 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: vault
+  namespace: argocd
+spec:
+  destination:
+    namespace: vault
+    server: https://kubernetes.default.svc
+  project: security
+  source:
+    helm:
+      version: v3
+      valueFiles:
+      - values.yaml
+      - ../values-override.yaml
+      parameters:
+        - name: "server.dev.enabled"
+          value: "true"
+        - name: "injector.enabled"
+          value: "false"
+    repoURL: https://github.com/hashicorp/vault-helm.git
+    targetRevision: HEAD
+  syncPolicy:
+    syncOptions:
+    - CreateNamespace=true
+    automated:
+      selfHeal: true
+      prune: true
