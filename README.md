@@ -37,6 +37,7 @@ kubectl -n argocd get secrets argocd-initial-admin-secret -o jsonpath='{.data.pa
 + Self Managed ArgoCD 
 + Nginx Ingress on port 80 and 443 of localhost
 + Kube-Prometheus
++ Hashicorp Vault
 
 ## License
 [MIT](https://choosealicense.com/licenses/mit/)
