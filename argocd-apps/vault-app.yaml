@@ -21,7 +21,7 @@ spec:
         - name: "server.ingress.hosts[0].host"
           value: "*"
         - name: "server.ingress.hosts[0].paths"
-          value: "[/vault]"
+          value: [/vault]
         - name: "injector.enabled"
           value: "false"
         - name: "ui.externalPort"
