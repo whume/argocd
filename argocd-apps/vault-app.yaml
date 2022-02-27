@@ -18,8 +18,14 @@ spec:
           value: "true"
         - name: "server.ingress.enabled"
           value: "true"
+        - name: "server.ingress.hosts[0].host"
+          value: "*"
+        - name: "server.ingress.hosts[0].paths"
+          value: "/vault"
         - name: "injector.enabled"
           value: "false"
+        - name: "ui.externalPort"
+          value: "80"
     repoURL: https://helm.releases.hashicorp.com
     chart: vault
     targetRevision: 0.19.0
