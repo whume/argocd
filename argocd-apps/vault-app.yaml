@@ -13,14 +13,13 @@ spec:
       version: v3
       valueFiles:
       - values.yaml
-      - ../values-override.yaml
       parameters:
         - name: "server.dev.enabled"
           value: "true"
         - name: "injector.enabled"
           value: "false"
-    path: /
-    repoURL: https://github.com/hashicorp/vault-helm.git
+    repoURL: https://helm.releases.hashicorp.com
+    chart: hashicorp/vault
     targetRevision: HEAD
   syncPolicy:
     syncOptions:
