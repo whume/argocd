@@ -15,10 +15,10 @@ spec:
     path: kube-prometheus/manifests/setup
     repoURL: https://github.com/whume/argocd.git
     targetRevision: HEAD
-  syncPolicy:
-    automated:
-      selfHeal: true
-      prune: true
+  # syncPolicy:
+  #   automated:
+  #     selfHeal: true
+      # prune: true
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -36,7 +36,7 @@ spec:
     path: kube-prometheus/manifests
     repoURL: https://github.com/whume/argocd.git
     targetRevision: HEAD
-  syncPolicy:
-    automated:
-      selfHeal: true
-      prune: true
+  # syncPolicy:
+  #   automated:
+  #     selfHeal: true
+  #     prune: true
