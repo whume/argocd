@@ -19,7 +19,7 @@ spec:
         - name: "injector.enabled"
           value: "false"
     repoURL: https://helm.releases.hashicorp.com
-    chart: hashicorp/vault
+    chart: vault
     targetRevision: 0.19.0
   syncPolicy:
     syncOptions:
