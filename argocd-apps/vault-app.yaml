@@ -16,6 +16,12 @@ spec:
       parameters:
         - name: "server.dev.enabled"
           value: "true"
+        - name: "server.ingress.enabled"
+          value: "true"
+        - name: "server.ingress.hosts.host"
+          value: "*"
+        - name: "server.ingress.hosts.paths"
+          value: "/vault"
         - name: "injector.enabled"
           value: "false"
     repoURL: https://helm.releases.hashicorp.com
