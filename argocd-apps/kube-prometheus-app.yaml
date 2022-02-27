@@ -9,7 +9,7 @@ metadata:
 spec:
   destination:
     namespace: monitoring
-    server: https://kubernetes.default.svc
+    # server: https://kubernetes.default.svc
   project: monitoring
   source:
     path: kube-prometheus/manifests/setup
@@ -30,7 +30,7 @@ metadata:
 spec:
   destination:
     namespace: monitoring
-    server: https://kubernetes.default.svc
+    # server: https://kubernetes.default.svc
   project: monitoring
   source:
     path: kube-prometheus/manifests
